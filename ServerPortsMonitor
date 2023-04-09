@@ -1,0 +1,46 @@
+import sys
+import nmap
+from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget
+
+class ServerPortScanner(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        # تعريف وتهيئة العناصر الرسومية
+        self.server_address_label = QLabel("Server Address:")
+        self.server_address_button = QPushButton("Scan Ports")
+        self.server_address_button.clicked.connect(self.scan_ports)
+        self.result_label = QLabel("Scan results will appear here.")
+
+        # تهيئة تخطيط واجهة المستخدم
+        layout = QVBoxLayout()
+        layout.addWidget(self.server_address_label)
+        layout.addWidget(self.server_address_button)
+        layout.addWidget(self.result_label)
+        self.setLayout(layout)
+        
+        # تهيئة خصائص النافذة
+        self.setWindowTitle("Server Port Scanner")
+        self.setGeometry(100, 100, 300, 200)
+    
+    def scan_ports(self):
+        # استخدام مكتبة nmap لفحص المنافذ المفتوحة على السيرفر
+        nm = nmap.PortScanner()
+        server_address = "localhost" # تعديل عنوان السيرفر الخاص بك هنا
+        nm.scan(server_address, arguments="-p-")
+        open_ports = [port for port in nm[server_address].all_tcp() if nm[server_address]['tcp'][port]['state'] == 'open']
+        
+        # عرض نتائج المسح على واجهة المستخدم
+        if open_ports:
+            self.result_label.setText(f"Open ports on {server_address}: {open_ports}")
+        else:
+            self.result_label.setText(f"No open ports found on {server_address}.")
+
+if __name__ == "__main__":
+    # تهيئة وتشغيل التطبيق
+    app = QApplication(sys.argv)
+    scanner = ServerPortScanner()
+    scanner.show()
+    sys.exit(app.exec_())
